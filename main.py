@@ -38,10 +38,13 @@ def writeAllGrades(file_path, all_grades):
         all_grades <dict> All the grades for the exam
     '''
 
-    output = {}
+    output = []
 
     for student_id, final_grade in all_grades.items():
-        output[student_id] = final_grade[-1]
+        output.append({
+            'SafeToken': student_id,
+            'Grade': final_grade[-1]
+            })
 
     with open(file_path, 'w') as out:
         json.dump(output, out, indent=4)
