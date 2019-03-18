@@ -97,8 +97,12 @@ class AnswerKey:
         # Multiply to the total number of points to get the grade
         # Finally if the result is negative it means the student only chose
         # wrong answers and thus they get 0
-        return max(round(sum(max(tuple(zip(correct, incorrect)))) *
-                         question.points, 2), 0)
+        grade = max(round(sum(max(tuple(zip(correct, incorrect)))) *
+                          question.points, 2), 0)
+
+        student_answer.grade = grade
+
+        return grade
 
 
 class Class:
@@ -170,6 +174,7 @@ class Answer:
         question_number    <int> Number of the question in the exam
         number_of_choices  <int> How many answer options the question has
         points             <int> The maximum grade possible on this question
+        grade              <int> Grade obtained on this question
         ignore_answer_mark <str> The character to mark an answer to ignore
     '''
 
@@ -178,6 +183,7 @@ class Answer:
         self.number_of_choices = int(number_of_choices)
         self.question_number = int(question_number)
         self.points = points
+        self.grade = 0
         self.ignore_answer_mark = ignore_answer_mark
 
         # if there is a value to ignore (has a *) splice it out of values
