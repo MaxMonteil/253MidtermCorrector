@@ -235,6 +235,7 @@ class Configurator:
         if not out_dir.exists():
             Path.mkdir(out_dir, exist_ok=True)
 
+        self.OUT_DIR = out_dir
         self.ANSWER_KEY = config['answer_key']
         self.STUDENT_ANSWERS = config['student_answers']
         self.RAW_GRADES = Path.joinpath(out_dir, 'RawGrades.txt')
