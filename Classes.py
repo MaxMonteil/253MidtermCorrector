@@ -75,7 +75,8 @@ class AnswerKey:
         # choose the pair where the student had the most correct answers.
         # From that pair return the sum of the grades for correct answers and
         # incorrect ones
-        return sum(max(tuple(zip(correct, incorrect))))
+        # Finally multiply to the total number of points to get the grade
+        return sum(max(tuple(zip(correct, incorrect)))) * question.points
 
 
 class Student:
