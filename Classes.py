@@ -45,7 +45,21 @@ class AnswerKey:
 
         return answers
 
-    def correctAnswer(self, *, question_number, student_answer):
+    def correctStudentExam(self, student):
+        '''
+        Takes a student and corrects all their answers for the exam.
+
+        Parameters:
+            student <Student> A Student whose exam will be corrected
+
+        Return:
+            <list> An ordered list of their grade for each question
+        '''
+
+        return [self.correctAnswer(answer)
+                for k, answer in student.answers.items()]
+
+    def correctAnswer(self, student_answer):
         '''
         Checks if a student answer is correct and grades it.
 
@@ -57,7 +71,7 @@ class AnswerKey:
             <float> Returns the grade for this question
         '''
 
-        question = self.answers[question_number]
+        question = self.answers[student_answer.question_number]
         answers = student_answer.answers[0]
 
         # Gives a tuple with the scores the student got for each of the
@@ -69,14 +83,19 @@ class AnswerKey:
         # answers the student chose
         incorrect = tuple(
                 len(answers - key) * -1/(question.number_of_choices - len(key))
+                if question.number_of_choices != len(key)
+                else 0
                 for key in question.answers)
 
         # Zip the correct and incorrect answers together into a tuple and
         # choose the pair where the student had the most correct answers.
         # From that pair return the sum of the grades for correct answers and
         # incorrect ones
-        # Finally multiply to the total number of points to get the grade
-        return sum(max(tuple(zip(correct, incorrect)))) * question.points
+        # Multiply to the total number of points to get the grade
+        # Finally if the result is negative it means the student only chose
+        # wrong answers and thus they get 0
+        return max(round(sum(max(tuple(zip(correct, incorrect)))) *
+                         question.points, 2), 0)
 
 
 class Class:
@@ -153,8 +172,8 @@ class Answer:
 
     def __init__(self, *, values, question_number, number_of_choices=0,
                  points=5, ignore_answer_mark='*'):
-        self.number_of_choices = number_of_choices
-        self.question_number = question_number
+        self.number_of_choices = int(number_of_choices)
+        self.question_number = int(question_number)
         self.points = points
         self.ignore_answer_mark = ignore_answer_mark
 
@@ -165,7 +184,4 @@ class Answer:
         self.answers = [set(v.split(',')) for v in new_values.split('|')]
 
     def __repr__(self):
-        return str(self.answers)
-
-    def __str__(self):
-        return self.answers
+        return '|'.join(','.join(answer) for answer in self.answers)
