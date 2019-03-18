@@ -19,7 +19,33 @@ class AnswerKey:
         answer_key <path> Path to the text file with the answer key
     '''
 
-    def correctAnswer(self, *, student_answer, question_number):
+    def __init__(self, answer_key):
+        self.answers = self.buildAnswerKey(answer_key)
+
+    def buildAnswerKey(self, answer_key):
+        '''
+        Reads the answer key file and builds up the list of exam answers.
+
+        Parameters:
+            answer_key <path> Path to the answer key file
+
+        Return:
+            <dict> Dictionary mapping question number to answer
+        '''
+
+        with open(answer_key, 'r') as ak:
+            ak_lines = ak.readlines()
+
+        answers = {}
+        for index, line in enumerate(ak_lines, start=1):
+            token = line.split('|', 1)
+            answers[index] = Answer(question_number=index,
+                                    number_of_choices=token[0],
+                                    values=token[1])
+
+        return answers
+
+    def correctAnswer(self, *, question_number, student_answer):
         '''
         Checks if a student answer is correct and grades it.
 
@@ -31,25 +57,25 @@ class AnswerKey:
             <float> Returns the grade for this question
         '''
 
-        # Makes a tuple with the number of correct student answers
-        # ex: (1, 2)
-        correct_answers = tuple(
-                len(a.intersection(student_answer.answers))
-                for a in self.answers)
+        question = self.answers[question_number]
+        answers = student_answer.answers[0]
 
-        wrong_answers = tuple(self.number_of_choices - a for a in self.answers)
+        # Gives a tuple with the scores the student got for each of the
+        # possible answers to the question
+        correct = tuple(len(key & answers) * 1/len(key)
+                        for key in question.answers)
 
-        correct_point_weight = 1/len(self.answers)
-        incorrect_point_weight = 1/(self.number_of_choices - len(self.answers))
+        # This gives a tuple with the grade deduction for the number of wrong
+        # answers the student chose
+        incorrect = tuple(
+                len(answers - key) * -1/(question.number_of_choices - len(key))
+                for key in question.answers)
 
-        # Gets the grade for the question based on correct and incorrect
-        # answers into a list, it then takes the option that gives the highest
-        # score
-        grade = max(list(zip(
-            correct_answers * correct_point_weight,
-            wrong_answers * incorrect_point_weight)))
-
-        return grade
+        # Zip the correct and incorrect answers together into a tuple and
+        # choose the pair where the student had the most correct answers.
+        # From that pair return the sum of the grades for correct answers and
+        # incorrect ones
+        return sum(max(tuple(zip(correct, incorrect))))
 
 
 class Student:
@@ -74,9 +100,8 @@ class Answer:
         ignore_answer_mark <str> The character to mark an answer to ignore
     '''
 
-    def __init__(
-            self, *, values, question_number, number_of_choices=0, points=5,
-            ignore_answer_mark='*'):
+    def __init__(self, *, values, question_number, number_of_choices=0,
+                 points=5, ignore_answer_mark='*'):
         self.number_of_choices = number_of_choices
         self.question_number = question_number
         self.points = points
