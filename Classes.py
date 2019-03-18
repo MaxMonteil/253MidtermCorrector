@@ -180,8 +180,9 @@ class Answer:
 
     def __init__(self, *, values, question_number, number_of_choices=0,
                  points=5, ignore_answer_mark='*'):
-        self.number_of_choices = int(number_of_choices)
+        self.values = values
         self.question_number = int(question_number)
+        self.number_of_choices = int(number_of_choices)
         self.points = points
         self.grade = 0
         self.ignore_answer_mark = ignore_answer_mark
