@@ -217,7 +217,13 @@ class Configurator:
 
     def __init__(self, config_path):
         config = self.loadConfig(config_path)
-        out_dir = config['out_dir']
+
+        if config:
+            out_dir = Path(config['out_dir'])
+        else:
+            print('There is an error with the configuration file.')
+            print('Please ensure it is valid')
+            return None
 
         if not out_dir.exists():
             Path.mkdir(out_dir, exist_ok=True)
