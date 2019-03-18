@@ -7,6 +7,7 @@ Main driver to correct a 253 midterm exam.
 
 from Classes import AnswerKey, Class, Configurator
 from pathlib import Path
+import json
 
 # CONSTANTS
 CONFIG_PATH = Path('./exam_corr.cfg')
@@ -21,9 +22,29 @@ def main():
     answerKey = AnswerKey(config.ANSWER_KEY)
     students = Class(config.STUDENT_ANSWERS)
 
-    exam_grades = gradeExam(answerKey, students, config.RAW_GRADES)
+    exam_grades = gradeExam(answerKey, students)
+
+    writeAllGrades(config.ALL_GRADES, exam_grades)
 
     return exam_grades
+
+
+def writeAllGrades(file_path, all_grades):
+    '''
+    Writes all the student grades to a json file.
+
+    Parameters:
+        file_path  <Path> Path to output file
+        all_grades <dict> All the grades for the exam
+    '''
+
+    output = {}
+
+    for student_id, final_grade in all_grades.items():
+        output[student_id] = final_grade[-1]
+
+    with open(file_path, 'w') as out:
+        json.dump(output, out, indent=4)
 
 
 def gradeExam(answerKey, students, output_file=None):
