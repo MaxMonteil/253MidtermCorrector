@@ -260,4 +260,4 @@ class Configurator:
             print('Creating one, please fill in the path to the proper files.')
 
             with open(config_path, 'w') as f:
-                json.dump(self.default_config, f)
+                json.dump(self.default_config, f, indent=4)
