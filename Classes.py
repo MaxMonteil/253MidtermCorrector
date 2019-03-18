@@ -34,7 +34,7 @@ class AnswerKey:
         '''
 
         with open(answer_key, 'r') as ak:
-            ak_lines = ak.readlines()
+            ak_lines = [line.strip('\n') for line in ak]
 
         answers = {}
         for index, line in enumerate(ak_lines, start=1):
@@ -90,7 +90,7 @@ class Class:
     def __init__(self, students_answers_file):
         self.students = self.createStudents(students_answers_file)
 
-    def createStudents(students_answers_file):
+    def createStudents(self, students_answers_file):
         '''
         Reads each line of the student answer file and creates a list of
         students.
@@ -103,7 +103,7 @@ class Class:
         '''
 
         with open(students_answers_file, 'r') as sa:
-            sa_lines = sa.readlines()
+            sa_lines = [line.strip('\n') for line in sa]
 
         return [Student(student_id=line[0], answers=line[1])
                 for line in (line.split('|', 1) for line in sa_lines)]
@@ -122,12 +122,13 @@ class Student:
         self.student_id = student_id
         self.answers = self.buildStudentAnswers(answers.split('|'))
 
-    def buildStudentAnswers(answers):
+    def buildStudentAnswers(self, answers):
         '''
         Creates the Answers dictionary from the answers tokenized list.
 
         Parameters:
-            answers <str> String of all the student's answers ex: a,b|a|...
+            answers <list> Token list of all the student's answers
+                           ex:['a,b', 'a']
 
         Return:
             <dict> Dictionary mapping question number to student's answer
@@ -159,6 +160,12 @@ class Answer:
 
         # if there is a value to ignore (has a *) splice it out of values
         _ = values.find(self.ignore_answer_mark)
-        new_values = values[:_] + values[_ + 3:] if _ == -1 else values
+        new_values = values[:_] + values[_ + 3:] if _ != -1 else values
 
         self.answers = [set(v.split(',')) for v in new_values.split('|')]
+
+    def __repr__(self):
+        return str(self.answers)
+
+    def __str__(self):
+        return self.answers
