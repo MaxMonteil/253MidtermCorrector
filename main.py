@@ -5,7 +5,7 @@ Main driver to correct a 253 midterm exam.
 '''
 
 
-import json
+from Classes import AnswerKey, Class, Configurator
 from pathlib import Path
 
 # CONSTANTS
@@ -13,42 +13,47 @@ CONFIG_PATH = Path('./exam_corr.cfg')
 
 
 def main():
-    config = configurator()
+    config = Configurator(CONFIG_PATH)
 
-    if config:
-        print(config)
+    if not config:
+        return
+
+    answerKey = AnswerKey(config.ANSWER_KEY)
+    students = Class(config.STUDENT_ANSWERS)
+
+    exam_grades = gradeExam(answerKey, students, config.RAW_GRADES)
+
+    return exam_grades
 
 
-def configurator():
+def gradeExam(answerKey, students, output_file=None):
     '''
-    Reads the configuration file and returns the path to the exam files.
+    Grades the entire exam for all given students.
 
-    :param config_path: <str> Path to configuration file
-    :return: <dict> Returns the path to the answer key and student answer files
-             <bool> False if there was an error with the config file
+    Parameters:
+        answerKey <AnswerKey> The exam's answer key
+        students  <Class> A Class object that contains all students
+        output_file <Path> Optional If given is the path to output all grades
+
+    Returns:
+        <dict> Mapping of student ID to all their grades for the exam
     '''
 
-    config = {
-            'answer_key': '',
-            'student_answers': ''
-            }
+    exam_grades = {}
+    for student in students.students:
+        float_answers = answerKey.correctStudentExam(student)
+        float_answers.append(sum(float_answers))
+        exam_grades[student.student_id] = float_answers
 
-    try:
-        with open(CONFIG_PATH, 'r') as f:
-            config = json.load(f)
+    if output_file:
+        with open(output_file, 'w') as out:
+            for student_id, grades in exam_grades.items():
+                str_answers = [str(grade) for grade in grades]
 
-        # check that the config dict only has the proper keys
-        if all((v in config for v in ['answer_key', 'student_answers'])):
-            return config
-        else:
-            return False
+                out.write(student_id)
+                out.write(f'|{"|".join(str_answers)}\n')
 
-    except FileNotFoundError:
-        print('Configuration file not found.')
-        print('Creating one, please fill in the path to the proper files.')
-
-        with open(CONFIG_PATH, 'w') as f:
-            json.dump(config, f)
+    return exam_grades
 
 
 if __name__ == '__main__':
