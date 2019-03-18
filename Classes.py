@@ -9,6 +9,9 @@ Midterm corrector classes
         Answer: Exam answers, from student or answer key
 '''
 
+from pathlib import Path
+import json
+
 
 class AnswerKey:
     '''
@@ -185,3 +188,70 @@ class Answer:
 
     def __repr__(self):
         return '|'.join(','.join(answer) for answer in self.answers)
+
+
+class Configurator:
+    '''
+    Reads the configuration file and gives access to all needed paths.
+
+    Parameters:
+        config_path <str> Path to configuration file
+
+    Attributes:
+        default_config <dict> The default state of the config file
+
+    Exposed Paths:
+        ANSWER_KEY
+        STUDENT_ANSWERS
+        RAW_GRADES
+        ALL_GRADES
+        Q_STATS
+        CLASS_STATS
+    '''
+
+    default_config = {
+            'answer_key': '',
+            'student_answers': '',
+            'out_dir': ''
+            }
+
+    def __init__(self, config_path):
+        config = self.loadConfig(config_path)
+        out_dir = config['out_dir']
+
+        if not out_dir.exists():
+            Path.mkdir(out_dir, exist_ok=True)
+
+        self.ANSWER_KEY = config['answer_key']
+        self.STUDENT_ANSWERS = config['student_answers']
+        self.RAW_GRADES = Path.joinpath(out_dir, 'RawGrades.txt')
+        self.ALL_GRADES = Path.joinpath(out_dir, 'AllGrades.json')
+        self.Q_STATS = Path.joinpath(out_dir, 'qstats.json')
+        self.CLASS_STATS = Path.joinpath(out_dir, 'classstats.json')
+
+    def loadConfig(self, config_path):
+        '''
+        Loads the json data in the config file and verifies its validity. If
+        the file does not exist it will create one in the working directory and
+        prompt the user to fill it out.
+
+        Parameters:
+            config_path <Path> Path to the configuration file
+        '''
+        try:
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+
+            # check that the config dict only has the proper keys
+            if all((k in config for k in
+                    ['answer_key', 'student_answers', 'out_dir'])):
+                return config
+            else:
+                return False
+
+        except FileNotFoundError:
+            print('Configuration file not found.')
+            print('Creating one, please fill in the path to the proper files.')
+
+            with open(config_path, 'w') as f:
+                json.dump(self.default_config, f)
