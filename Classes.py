@@ -12,8 +12,8 @@ Midterm corrector classes
 
 class AnswerKey:
     '''
-    The Answer Key class serves to offer a simpler way to deal with student
-    answers by correcting and scoring them.
+    The Answer Key class serves to offer a simpler way to deal with the exam
+    answer key by correcting and scoring student answers.
 
     Parameters:
         answer_key <path> Path to the text file with the answer key
@@ -79,13 +79,62 @@ class AnswerKey:
         return sum(max(tuple(zip(correct, incorrect)))) * question.points
 
 
-class Student:
+class Class:
+    '''
+    Class in charge of managing and initializing all the students.
+
+    Parameters:
+        students_answers_file <path> Path to the student answers file
     '''
 
-    Attributes:
-        id <str> Unique student ID
+    def __init__(self, students_answers_file):
+        self.students = self.createStudents(students_answers_file)
+
+    def createStudents(students_answers_file):
+        '''
+        Reads each line of the student answer file and creates a list of
+        students.
+
+        Parameters:
+            students_answers_file <path> Path to the student answers file
+
+        Return:
+            <list> A list of Student objects
+        '''
+
+        with open(students_answers_file, 'r') as sa:
+            sa_lines = sa.readlines()
+
+        return [Student(student_id=line[0], answers=line[1])
+                for line in (line.split('|', 1) for line in sa_lines)]
+
+
+class Student:
     '''
-    pass
+    Class to manage the student answers and identity.
+
+    Parameters:
+        answers    <str> String of all the student's answers ex: a,b|a|...
+        student_id <str> Unique id code for the student
+    '''
+
+    def __init__(self, *, answers, student_id):
+        self.student_id = student_id
+        self.answers = self.buildStudentAnswers(answers.split('|'))
+
+    def buildStudentAnswers(answers):
+        '''
+        Creates the Answers dictionary from the answers tokenized list.
+
+        Parameters:
+            answers <str> String of all the student's answers ex: a,b|a|...
+
+        Return:
+            <dict> Dictionary mapping question number to student's answer
+        '''
+
+        return {q_num: Answer(question_number=q_num, values=answer)
+                for (q_num, answer) in enumerate(answers, start=1)}
 
 
 class Answer:
