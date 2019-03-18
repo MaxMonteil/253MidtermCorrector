@@ -25,8 +25,35 @@ def main():
     exam_grades = gradeExam(answerKey, students)
 
     writeAllGrades(config.ALL_GRADES, exam_grades)
+    writeIndividualStats(config.OUT_DIR, exam_grades, students)
 
     return exam_grades
+
+
+def writeIndividualStats(out_path, all_grades, students):
+    '''
+    Creates files for each student with a rundown of how they did for each
+    question.
+
+    Parameters:
+        all_grades <dict>  All the grades for the exam
+        students   <Class> Collection of all the students
+    '''
+
+    output = {}
+
+    for student in students.students:
+        output[student.student_id] = [
+                {
+                    'QuestionNumber': q_num,
+                    'StudentAnswer': answer.values
+                }
+                for q_num, answer in student.answers.items()
+                if answer.grade < answer.points]
+
+    for student_id, info in output.items():
+        with open(Path.joinpath(out_path, f'{student_id}.json'), 'w') as f:
+            json.dump(output[student_id], f, indent=4)
 
 
 def writeAllGrades(file_path, all_grades):
