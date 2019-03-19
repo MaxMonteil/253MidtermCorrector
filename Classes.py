@@ -60,7 +60,7 @@ class AnswerKey:
         '''
 
         return [self.correctAnswer(answer)
-                for k, answer in student.answers.items()]
+                for answer in student.answers.values()]
 
     def correctAnswer(self, student_answer):
         '''
