@@ -7,6 +7,7 @@ Main driver to correct a 253 midterm exam.
 
 from Classes import AnswerKey, Class, Configurator
 from pathlib import Path
+from statistics import mean, median, mode
 import json
 
 # CONSTANTS
@@ -24,10 +25,35 @@ def main():
 
     exam_grades = gradeExam(answerKey, students)
 
-    writeAllGrades(config.ALL_GRADES, exam_grades)
-    writeIndividualStats(config.OUT_DIR, exam_grades, students)
+    # writeAllGrades(config.ALL_GRADES, exam_grades)
+    # writeIndividualStats(config.OUT_DIR, exam_grades, students)
+    writeClassStats(config.CLASS_STATS, exam_grades)
 
     return exam_grades
+
+
+def writeClassStats(file_path, all_grades):
+    '''
+    Writes the class statistics for the exam to a json file.
+
+    Parameters:
+        file_path  <Path> Path to output file
+        all_grades <dict> All the grades for the exam
+    '''
+
+    final_grades = [grade[-1] for grade in all_grades.values()]
+    firstQ, thirdQ = getQuartiles(final_grades)
+
+    with open(file_path, 'w') as out:
+        json.dump({
+                'Min': min(final_grades),
+                'FirstQuartile': firstQ,
+                'Mean': mean(final_grades),
+                'Median': median(final_grades),
+                'ThirdQuartile': thirdQ,
+                'Max': max(final_grades),
+                'Mode': mode(final_grades)
+            }, out, indent=4)
 
 
 def writeIndividualStats(out_path, all_grades, students):
@@ -45,13 +71,13 @@ def writeIndividualStats(out_path, all_grades, students):
     for student in students.students:
         output[student.student_id] = [
                 {
-                    'QuestionNumber': q_num,
+                    'QuestionNumber': answer.question_number,
                     'StudentAnswer': answer.values
                 }
-                for q_num, answer in student.answers.items()
+                for answer in student.answers.values()
                 if answer.grade < answer.points]
 
-    for student_id, info in output.items():
+    for student_id in output:
         with open(Path.joinpath(out_path, f'{student_id}.json'), 'w') as f:
             json.dump(output[student_id], f, indent=4)
 
@@ -105,6 +131,32 @@ def gradeExam(answerKey, students, output_file=None):
                 out.write(f'|{"|".join(str_answers)}\n')
 
     return exam_grades
+
+
+def getQuartiles(n_list):
+    '''
+    Calculates the first and third quartiles of a number list.
+
+    Parameters:
+        n_list <list> List of numbers
+
+    Returns:
+        <tuple> Returns a tuple pair of the first and third list quartiles
+    '''
+
+    sorted_list = sorted(n_list)
+
+    length = len(sorted_list)
+    mid = length // 2
+
+    if length % 2 == 0:
+        firstQ = median(sorted_list[:mid])
+        thirdQ = median(sorted_list[mid:])
+    else:
+        firstQ = median(sorted_list[:mid])
+        thirdQ = median(sorted_list[mid+1:])
+
+    return firstQ, thirdQ
 
 
 if __name__ == '__main__':
