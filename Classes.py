@@ -98,7 +98,7 @@ class AnswerKey:
         # Finally if the result is negative it means the student only chose
         # wrong answers and thus they get 0
         grade = max(round(sum(max(tuple(zip(correct, incorrect)))) *
-                          question.points, 2), 0)
+                          question.points, 2), 0.0)
 
         student_answer.grade = grade
 
