@@ -25,12 +25,10 @@ def main():
 
     exam_grades = gradeExam(answerKey, students)
 
-    # writeAllGrades(config.ALL_GRADES, exam_grades)
-    # writeIndividualStats(config.OUT_DIR, exam_grades, students)
-    # writeClassStats(config.CLASS_STATS, exam_grades)
+    writeAllGrades(config.ALL_GRADES, exam_grades)
+    writeIndividualStats(config.OUT_DIR, exam_grades, students)
+    writeClassStats(config.CLASS_STATS, exam_grades)
     writeQuestionStats(config.Q_STATS, exam_grades)
-
-    return exam_grades
 
 
 def writeQuestionStats(file_path, all_grades):
