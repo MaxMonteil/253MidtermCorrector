@@ -27,9 +27,49 @@ def main():
 
     # writeAllGrades(config.ALL_GRADES, exam_grades)
     # writeIndividualStats(config.OUT_DIR, exam_grades, students)
-    writeClassStats(config.CLASS_STATS, exam_grades)
+    # writeClassStats(config.CLASS_STATS, exam_grades)
+    writeQuestionStats(config.Q_STATS, exam_grades)
 
     return exam_grades
+
+
+def writeQuestionStats(file_path, all_grades):
+    '''
+    Builds an array of the stats of each question in an exam.
+
+    Parameters:
+        file_path  <Path> Path to output file
+        all_grades <dict> All the grades for the exam
+    '''
+
+    # Transposes the all_grades list of grades by student matrix into a list of
+    # grades by question
+    # Remove the last one since it contains the students total grades
+    grades_by_question = [list(q) for q in zip(*all_grades.values())][:-1]
+
+    quartiles = ()
+
+    def memoizedQuartiles(q_list=None):
+        nonlocal quartiles
+        if q_list:
+            quartiles = getQuartiles(q_list)
+
+        return quartiles
+
+    questions_stats = [{
+            'Q': index,
+            'Min': min(question),
+            'FirstQuartile': memoizedQuartiles(q_list=question)[0],
+            'Mean': mean(question),
+            'Median': median(question),
+            'ThirdQuartile': memoizedQuartiles()[1],
+            'Max': max(question),
+            'Mode': mode(question)
+        }
+        for index, question in enumerate(grades_by_question, start=1)]
+
+    with open(file_path, 'w') as out:
+        json.dump(questions_stats, out, indent=4)
 
 
 def writeClassStats(file_path, all_grades):
